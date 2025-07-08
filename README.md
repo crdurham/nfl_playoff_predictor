@@ -15,10 +15,10 @@ For information relating to the roster constitution of each team, yearly rosters
 Simply put, our hope is that one or more variables will separate our data into two classes according to whether or not the team made the playoffs in the subsequent season.
 
 <p align="left">
-<img src="/Users/coledurham/Documents/nfl_playoff_predictor/images/win_percent_to_playoffs.png" width="400" height="300">
+<img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/win_percent_to_playoffs.png" width="400" height="300">
 </p>
 
 <p align="right">
-<img src="/Users/coledurham/Documents/nfl_playoff_predictor/images/pd_to_playoffs.png" width="400" height="300">
+<img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/pd_to_playoffs.png" width="400" height="300">
 </p>
 
