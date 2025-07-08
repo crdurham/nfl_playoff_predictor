@@ -45,7 +45,8 @@ const              0.9301      0.463      2.007      0.045       0.022       1.8
 PD                 0.0074      0.001      8.789      0.000       0.006       0.009
 Avg Experience    -0.2586      0.121     -2.143      0.032      -0.495      -0.022
 SoS                0.0752      0.049      1.549      0.121      -0.020       0.170
-=================================================================================='''
+==================================================================================
+'''
 
 For this reason as well as for interpretability, we fit a model which only uses PD and Avg Experience. From training, the model performs as follows:
 
@@ -67,8 +68,8 @@ Covariance Type:            nonrobust
 const              0.9121      0.462      1.974      0.048       0.007       1.818
 PD                 0.0071      0.001      8.710      0.000       0.005       0.009
 Avg Experience    -0.2534      0.120     -2.105      0.035      -0.489      -0.017
-=================================================================================='''
-
+==================================================================================
+'''
 
 When used to make predictions on the test data, the model produces the following classification report which indicates a raw accuracy of 64.2%.
 
