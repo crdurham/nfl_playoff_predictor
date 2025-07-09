@@ -89,7 +89,7 @@ weighted avg      0.648     0.642     0.644       212
 This accuracy improves upon the uninformed prediction that every team will miss the playoffs, which would achieve 60% accuracy. However, the recall and precision scores within the playoff teams (class 1) are a bit meager. We tune the classification parameter $p$ in an attempt to improve model performance.
 
 <p float="left">
-  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/threshold_tuning.png" width="800" height="300">
+  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/threshold_tuning.png" width="800" height="800">
 </p>
 
 The F1 score and weighted F1 score peak at $p=0.47$ and $p=0.54$ respectively. The former is more aggressive in predicting a team will make the playoffs because it values both classes equally and the recall for class 1 was low with $p=0.5$; the latter is a bit more conservative because it takes into account that the majority of teams fall into class 0. Something to keep in mind: which threshold we would use in practice ultimately depends on context. When scouting opponent strength, using the aggressive model makes sense.
