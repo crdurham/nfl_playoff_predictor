@@ -125,39 +125,39 @@ Both models perform at roughly the same accuracy overall on the training set. Up
 
 By using relevant statistics from the 2024 NFL season, we can estimate the likelihood that each team will make the playoffs in 2025.
 
- | Tm   |   PD |   Avg Experience |   2025 Playoff Probability | 2025 Playoffs: Make or Miss   |
+| Tm   |   PD |   Avg Experience |   2025 Playoff Probability | 2025 Playoffs: Make or Miss   |
 |------|------|------------------|----------------------------|-------------------------------|
 | DET  |  222 |          4.10204 |                   0.809182 | Make                          |
-| PHI  |  160 |          3.52083 |                   0.760052 | Miss                          |
-| GB   |  122 |          2.59184 |                   0.753853 | Miss                          |
-| BUF  |  157 |          3.96    |                   0.735062 | Miss                          |
+| PHI  |  160 |          3.52083 |                   0.760052 | Make                          |
+| GB   |  122 |          2.59184 |                   0.753853 | Make                          |
+| BUF  |  157 |          3.96    |                   0.735062 | Make                          |
 | BAL  |  157 |          4.08696 |                   0.728751 | Make                          |
-| TB   |  117 |          3       |                   0.727199 | Miss                          |
+| TB   |  117 |          3       |                   0.727199 | Make                          |
 | DEN  |  114 |          3.12766 |                   0.71644  | Make                          |
-| LAC  |  101 |          3.79245 |                   0.660696 | Miss                          |
-| CIN  |   38 |          2.84    |                   0.613401 | Miss                          |
-| MIN  |  100 |          4.73913 |                   0.603358 | Miss                          |
-| WAS  |   94 |          4.63265 |                   0.599641 | Miss                          |
-| KC   |   59 |          3.86667 |                   0.58667  | Miss                          |
+| LAC  |  101 |          3.79245 |                   0.660696 | Make                          |
+| CIN  |   38 |          2.84    |                   0.613401 | Make                          |
+| MIN  |  100 |          4.73913 |                   0.603358 | Make                          |
+| WAS  |   94 |          4.63265 |                   0.599641 | Make                          |
+| KC   |   59 |          3.86667 |                   0.58667  | Make                          |
 | ARI  |   21 |          3.19149 |                   0.562721 | Make                          |
 | LAR  |  -19 |          2.38298 |                   0.543348 | Make                          |
-| SEA  |    7 |          3.36    |                   0.52757  | Make                          |
+| SEA  |    7 |          3.36    |                   0.52757  | Miss                          |
 | PIT  |   33 |          4.52    |                   0.50015  | Miss                          |
-| HOU  |    0 |          4.37255 |                   0.451231 | Make                          |
-| IND  |  -50 |          3.54717 |                   0.41566  | Make                          |
+| HOU  |    0 |          4.37255 |                   0.451231 | Miss                          |
+| IND  |  -50 |          3.54717 |                   0.41566  | Miss                          |
 | SF   |  -47 |          4       |                   0.393148 | Miss                          |
 | ATL  |  -34 |          4.42857 |                   0.389211 | Miss                          |
-| NO   |  -60 |          3.70588 |                   0.388973 | Make                          |
-| MIA  |  -19 |          4.97959 |                   0.381303 | Make                          |
-| CHI  |  -60 |          3.86    |                   0.379734 | Make                          |
+| NO   |  -60 |          3.70588 |                   0.388973 | Miss                          |
+| MIA  |  -19 |          4.97959 |                   0.381303 | Miss                          |
+| CHI  |  -60 |          3.86    |                   0.379734 | Miss                          |
 | NYJ  |  -66 |          4.40816 |                   0.338041 | Miss                          |
-| LV   | -125 |          2.81132 |                   0.335096 | Make                          |
+| LV   | -125 |          2.81132 |                   0.335096 | Miss                          |
 | JAX  | -115 |          3.19231 |                   0.32939  | Miss                          |
 | NE   | -128 |          3.06122 |                   0.316527 | Miss                          |
 | DAL  | -118 |          3.8     |                   0.291906 | Miss                          |
-| NYG  | -142 |          3.62    |                   0.266887 | Make                          |
+| NYG  | -142 |          3.62    |                   0.266887 | Miss                          |
 | TEN  | -149 |          3.71429 |                   0.252764 | Miss                          |
-| CAR  | -193 |          3.94    |                   0.189594 | Make                          |
+| CAR  | -193 |          3.94    |                   0.189594 | Miss                          |
 | CLE  | -177 |          4.54902 |                   0.183373 | Miss                          |
 
 
