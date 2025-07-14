@@ -18,6 +18,9 @@ import seaborn as sns
 from collections import Counter
 
 def fit_weighted_log(X, y):
+    '''Fit a weighted logistic regression model with feature data X and label data y. Returns the results of
+    fitting the model.'''
+
     X_sm = sm.add_constant(X)
 
     class_counts = Counter(y)
@@ -39,6 +42,9 @@ def fit_weighted_log(X, y):
     return results
 
 def rfe_features(X,y, n_features):
+    '''Run recursive feature elimination on feature data X (after scaling) with label data y. Choose number of
+    features to select via parameter n_features.'''
+
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     lr = LogisticRegression(solver='liblinear')
@@ -50,6 +56,9 @@ def rfe_features(X,y, n_features):
     return selected_features
 
 def lasso_coefficients(X,y):
+    '''Run Lasso logistic regression on feature data X with label data y. Uses/Tries 10 L1 penalty parameter values with 5-fold cross
+    validation.'''
+    
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     lasso = LogisticRegressionCV(

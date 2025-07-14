@@ -1,11 +1,15 @@
 import pandas as pd
 
 def numeric_col(df, columns):
+    '''Convert select columns in df to numeric.'''
     for column in columns:
         df.loc[:, column] = pd.to_numeric(df[column], errors='coerce')
     return df
 
 def basic_roster_info(df, year_start, year_end, min_games):
+    '''From df containing yearly team rosters, assemble new df with average experience and average age among players
+    who participated in at least a certain number of games. Also obtains number of rookies on the roster, no game limit.'''
+
     avg_exp_age_data = []
     for year in range(year_start, year_end):
         rosters_in_year = df[df['Year'] == year]
@@ -25,6 +29,8 @@ def basic_roster_info(df, year_start, year_end, min_games):
     return pd.DataFrame(avg_exp_age_data)
 
 def merge_roster_data(df_1, df_2):
+    '''Merge yearly stats df with roster composition df.'''
+
     df = pd.merge(left=df_1,
                  right=df_2,
                  how='left',
@@ -36,7 +42,10 @@ def merge_roster_data(df_1, df_2):
     return df
 
 def sorted_playoffs_next(df):
-    sorted_df = df.sort_values(by = ['Tm', 'Year']) #Group by team, then sort by year
+    '''For df containing columns Tm and Year, sort by Tm and then Year. Add column indicating whether team made
+    playoffs the next year by shifting Playoffs back one.'''
+    
+    sorted_df = df.sort_values(by = ['Tm', 'Year']) #Group/sort by team/year
     sorted_df['playoffs_next_yr'] = sorted_df.groupby('Tm')['Playoffs'].shift(-1) #Add shifted playoffs column; introduces NaN in some places
     sorted_df = sorted_df.dropna()
     return sorted_df

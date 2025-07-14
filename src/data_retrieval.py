@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup, Comment
 from io import StringIO
 
+'''Define dictionary which converts PFR team abbreviations to my preferred abbreviations for the corresponding franchise.'''
 pfr_to_standard_tm = {
     # AFC East
     'buf': 'BUF',
@@ -58,6 +59,9 @@ pfr_to_standard_tm = {
 
 
 def scrape_pfr_rosters(year_start, year_end):
+    '''Scrape yearly team rosters from PFR between year_start (inclusive) and year_end (exclusive). Includes exception case and time.sleep
+    to avoid being banned by the site.'''
+
     team_abbrevs_pfr = ['buf', 'nyj', 'mia', 'nwe', 'kan', 'sdg', 'den', 'rai', 'pit', 'rav', 'cin', 'cle', 'htx', 'jax',
                     'oti', 'clt', 'phi', 'nyg', 'was', 'dal', 'ram', 'sfo', 'sea', 'crd', 'gnb', 'det', 'min', 'chi', 'tam', 'nor', 'car', 'atl']
 
@@ -91,20 +95,24 @@ def scrape_pfr_rosters(year_start, year_end):
                 time.sleep(random.uniform(6,10))
 
             except Exception as e:
-                print(f"    Failed for {year}: {e}")
+                print(f"  Failed for {year}: {e}")
 
     df = pd.concat(all_rosters, ignore_index=True)
     return df
 
 
 def load_seasonal_stats(path):
+    '''Load seasonal stats from CSV and make small abbreviation fix due to some manual entry.'''
+
     df = pd.read_csv(path)
-    df = df.replace('AZ', 'ARI') #Small abbrev fix
+    df = df.replace('AZ', 'ARI')
     return df
 
 def load_rosters(path):
+    '''Load roster data from CSV. Specify columns to keep, then convert \"Rook\" to \"0\" in the experience column.nfl'''
+
     df = pd.read_csv(path)
-    df = df[['No.', 'Player', 'Year', 'Tm', 'Age', 'Pos', 'G', 'GS', 'Ht', 'Wt', 'College/Univ', 'BirthDate', 'Yrs', 'AV', 'Drafted (tm/rnd/yr)' ]]
+    df = df[['Player', 'Year', 'Tm', 'Age', 'Pos', 'G', 'GS', 'Ht', 'Wt', 'College/Univ', 'BirthDate', 'Yrs', 'AV', 'Drafted (tm/rnd/yr)' ]]
     # Replacing 'Rook' with 0 in the 'Yrs' column
     df.loc[df["Yrs"] == "Rook", "Yrs"] = '0'
     return df
