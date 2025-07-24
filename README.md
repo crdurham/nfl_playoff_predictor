@@ -18,7 +18,7 @@ Simply put, our naive hope is that one or more variables will separate our data 
   <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/histograms.png" width="600" height="400">
 </p>
 <p>
-  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/2dscatters.png" width="800" height="800">
+  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/2dscatters.png" width="600" height="800">
 
 </p>
 
