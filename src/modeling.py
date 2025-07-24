@@ -7,13 +7,14 @@ from sklearn.feature_selection import RFE
 from sklearn.discriminant_analysis import \
 (LinearDiscriminantAnalysis as LDA, QuadraticDiscriminantAnalysis as QDA)
 from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold, RepeatedStratifiedKFold
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 import matplotlib.pyplot as plt
-from sklearn.metrics import classification_report, confusion_matrix, precision_score, recall_score, f1_score
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import (classification_report, confusion_matrix, precision_score,
+                            recall_score, f1_score, roc_curve, auc, accuracy_score)
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import seaborn as sns
 
@@ -84,6 +85,160 @@ def lasso_coefficients(X,y):
     lasso.fit(X_scaled, y)
     coeff = pd.Series(lasso.coef_[0], index=X.columns)
     return coeff
+
+def knn_cv(X, y, neighbors = 5, folds=10, repeats = 1, scoring='weighted_f1', verbose=True):
+    scaler = StandardScaler()
+    rskf = RepeatedStratifiedKFold(n_splits=folds, n_repeats=repeats, random_state=42)
+    scores = []
+
+    for i, (train_index, val_index) in enumerate(rskf.split(X, y), 1):
+        X_train, X_val = X.iloc[train_index], X.iloc[val_index]
+        y_train, y_val = y.iloc[train_index], y.iloc[val_index]
+
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_val_scaled = scaler.transform(X_val)
+
+        knn = KNeighborsClassifier(n_neighbors=neighbors)
+        knn.fit(X_train_scaled, y_train)      
+        y_pred = knn.predict(X_val_scaled)
+
+        if scoring =='f1':
+            fold_score = f1_score(y_pred, y_val, average='binary')
+        elif scoring == 'weighted_f1':
+            fold_score = f1_score(y_pred, y_val, average='weighted')
+        elif scoring == 'accuracy':
+            fold_score = accuracy_score(y_pred, y_val)
+        else:
+            raise ValueError("Enter one of the following scoring metrics:\n" \
+                             "'f1', 'weighted_f1, or 'accuracy'.")
+        
+        scores.append(fold_score)
+
+        if verbose:
+            print(f"Fold {i} {scoring}: {fold_score: .3f}")
+    avg_score = np.mean(scores)
+    if verbose:
+        print(f"Average {scoring} across folds:\n {avg_score}")
+    return scores, avg_score
+
+def lda_cv(X, y, folds=10, repeats = 1, scoring='weighted_f1', verbose=True):
+    scaler = StandardScaler()
+    rskf = RepeatedStratifiedKFold(n_splits=folds, n_repeats=repeats,random_state=42)
+    scores = []
+
+    for i, (train_index, val_index) in enumerate(rskf.split(X, y), 1):
+        X_train, X_val = X.iloc[train_index], X.iloc[val_index]
+        y_train, y_val = y.iloc[train_index], y.iloc[val_index]
+
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_val_scaled = scaler.transform(X_val)
+
+        lda = LDA()
+        lda.fit(X_train_scaled, y_train)      
+        y_pred = lda.predict(X_val_scaled)
+
+        if scoring =='f1':
+            fold_score = f1_score(y_pred, y_val, average='binary')
+        elif scoring == 'weighted_f1':
+            fold_score = f1_score(y_pred, y_val, average='weighted')
+        elif scoring == 'accuracy':
+            fold_score = accuracy_score(y_pred, y_val)
+        else:
+            raise ValueError("Enter one of the following scoring metrics:\n" \
+                             "'f1', 'weighted_f1, or 'accuracy'.")
+        
+        scores.append(fold_score)
+
+        if verbose:
+            print(f"Fold {i} {scoring}: {fold_score: .3f}")
+    avg_score = np.mean(scores)
+    if verbose:
+        print(f"Average {scoring} across folds:\n {avg_score}")
+    return scores, avg_score
+
+def lda_eval(X_train, X_test, y_train, y_test):
+    scaler = StandardScaler()
+    X_2_train_scaled = scaler.fit_transform(X_train)
+    X_2_test_scaled = scaler.transform(X_test)
+
+    # train
+    lda = LDA()
+    lda.fit(X_2_train_scaled, y_train)
+
+    # predict
+    y_pred = lda.predict(X_2_test_scaled)
+
+    # evaluate
+    print(classification_report(y_test, y_pred))
+    print(confusion_matrix(y_test, y_pred))
+
+def rf_cv(X, y, folds=10, repeats = 1, n_estimators = 100, max_depth=5, min_samples_leaf = 2, scoring='weighted_f1', verbose=True):
+    rskf = RepeatedStratifiedKFold(n_splits=folds, n_repeats=repeats,random_state=42)
+    scores = []
+
+    for i, (train_index, val_index) in enumerate(rskf.split(X, y), 1):
+        X_train, X_val = X.iloc[train_index], X.iloc[val_index]
+        y_train, y_val = y.iloc[train_index], y.iloc[val_index]
+
+        rf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth,
+                                     min_samples_leaf=min_samples_leaf, random_state=42)
+        rf.fit(X_train, y_train)      
+        y_pred = rf.predict(X_val)
+
+        if scoring =='f1':
+            fold_score = f1_score(y_pred, y_val, average='binary')
+        elif scoring == 'weighted_f1':
+            fold_score = f1_score(y_pred, y_val, average='weighted')
+        elif scoring == 'accuracy':
+            fold_score = accuracy_score(y_pred, y_val)
+        else:
+            raise ValueError("Enter one of the following scoring metrics:\n" \
+                             "'f1', 'weighted_f1, or 'accuracy'.")
+        
+        scores.append(fold_score)
+
+        if verbose:
+            print(f"Fold {i} {scoring}: {fold_score: .3f}")
+    avg_score = np.mean(scores)
+    if verbose:
+        print(f"Average {scoring} across folds:\n {avg_score}")
+    return scores, avg_score
+
+
+def KFold_statsmodels(X, y, k=5, threshold=0.61):
+
+    skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+
+    log_likelihoods = []
+    accuracies = []
+
+    for train_index, val_index in skf.split(X, y):
+        X_train, X_val = X.iloc[train_index], X.iloc[val_index]
+        y_train, y_val = y.iloc[train_index], y.iloc[val_index]
+
+        class_counts = Counter(y_train)
+        n_total = len(y_train)
+        w_train = y_train.map({
+            0: n_total / (2 * class_counts[0]),
+            1: n_total / (2 * class_counts[1])
+        })
+
+        X_train_sm = sm.add_constant(X_train)
+        model = sm.GLM(y_train, X_train_sm, family=sm.families.Binomial(), freq_weights=w_train)
+        result = model.fit()
+
+        X_val_sm = sm.add_constant(X_val)
+        y_val_prob = result.predict(X_val_sm)
+
+        y_val_pred = (y_val_prob >= threshold).astype(int)
+
+        acc = (y_val_pred == y_val).mean()
+        accuracies.append(acc)
+
+        log_likelihoods.append(result.llf)
+
+    print(f"Avg CV Accuracy at threshold {threshold}: {np.mean(accuracies):.3f} ± {np.std(accuracies):.3f}")
+    print(f"Avg Train Log-Likelihood: {np.mean(log_likelihoods):.3f}")
 
 def confusion_matrix_and_classification_rep(fitted_model, X_test, y_test, threshold=0.5):
     #X_test_sm = sm.add_constant(X_test)
@@ -187,9 +342,126 @@ def threshold_tuning_plot(y_test, y_prob, thresholds = np.arange(0.05, 0.95, 0.0
         plt.plot(thresholds, recalls, label='Recall')
         plt.plot(thresholds, f1s, label='F1 Score')
         plt.plot(thresholds, weighted_f1s, label='Weighted F1', linestyle='--')
+        
         plt.xlabel("Threshold")
         plt.ylabel("Score")
         plt.title("Metric vs. Classification Threshold")
         plt.legend()
         plt.grid(True)
-        plt.show();
+        plt.show()
+
+        best_idx = np.argmax(f1s)
+        best_weighted_idx = np.argmax(weighted_f1s)
+    
+        return {
+        'best_threshold_f1': thresholds[best_idx],
+        'best_f1': f1s[best_idx],
+        'best_threshold_weighted': thresholds[best_weighted_idx],
+        'best_weighted_f1': weighted_f1s[best_weighted_idx]}
+
+
+def CV_threshold_tuning_statsmodels(X, y, folds=5, thresholds=np.arange(0.05, 0.95, 0.01), plot=False):
+    '''Performs k-fold cross validation manually using GLM in statsmodels as follows.
+    (This description is as much for my own understanding as anything!)
+    (1) Splits given X, y sets into train and val via StratifiedKFold. 
+    (2) Sets class frequency weights for given fold (Counter).
+    (3) Trains a model using X_train in GLM.
+    (4) For each threshold: Makes predictions using X_val, evaluates performance on y_val.
+                            Add F1 and weighted F1 to lists for fold.
+    (5) Find best threshold (idx) for f1, wf1 for given fold.
+    (6) Takes avg of thresholds, f1s/wf1s, across best from each fold.
+    (7) (Optionally) Plot avg metric curves.'''
+    
+    skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
+
+    all_f1_scores = []
+    all_weighted_f1_scores = []
+    all_best_thresholds = []
+    all_best_weighted_thresholds = []
+
+    all_f1_scores_per_threshold = []
+    all_weighted_f1_scores_per_threshold = []
+
+    for fold, (train_idx, val_idx) in enumerate(skf.split(X, y), 1):
+        X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
+        y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
+
+        # Class weights
+        class_counts = Counter(y_train)
+        n_total = len(y_train)
+        weights = y_train.map({
+            0: n_total / (2 * class_counts[0]),
+            1: n_total / (2 * class_counts[1])
+        })
+
+        # Fit model
+        X_train_sm = sm.add_constant(X_train)
+        model = sm.GLM(y_train, X_train_sm, family=sm.families.Binomial(), freq_weights=weights)
+        result = model.fit()
+
+        # Predict on validation set
+        X_val_sm = sm.add_constant(X_val)
+        y_prob = result.predict(X_val_sm)
+
+        # Threshold tuning
+        f1s = []
+        weighted_f1s = []
+
+        for t in thresholds:
+            y_pred = (y_prob >= t).astype(int)
+            f1s.append(f1_score(y_val, y_pred, zero_division=0))
+            weighted_f1s.append(f1_score(y_val, y_pred, average='weighted', zero_division=0))
+
+        best_idx = np.argmax(f1s)
+        best_weighted_idx = np.argmax(weighted_f1s)
+
+        all_f1_scores.append(f1s[best_idx])
+        all_weighted_f1_scores.append(weighted_f1s[best_weighted_idx])
+        all_best_thresholds.append(thresholds[best_idx])
+        all_best_weighted_thresholds.append(thresholds[best_weighted_idx])
+        all_f1_scores_per_threshold.append(f1s)
+        all_weighted_f1_scores_per_threshold.append(weighted_f1s)
+
+        print(f"Fold {fold}: Best F1 = {f1s[best_idx]:.3f} at threshold {thresholds[best_idx]:.2f}, "
+              f"Best Weighted F1 = {weighted_f1s[best_weighted_idx]:.3f} at threshold {thresholds[best_weighted_idx]:.2f}")
+
+    
+    if plot:
+        plt.plot(thresholds, np.mean(all_f1_scores_per_threshold, axis=0), label='F1')
+        plt.plot(thresholds, np.mean(all_weighted_f1_scores_per_threshold, axis=0), label='Weighted F1')
+        plt.xlabel("Threshold")
+        plt.ylabel("Score")
+        plt.title("Average CV Metrics vs Threshold")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    # Report averages
+    #avg_f1 = np.mean(all_f1_scores)
+    #avg_weighted_f1 = np.mean(all_weighted_f1_scores)
+    #best_thresh = np.mean(all_best_thresholds)
+    #best_weighted_thresh = np.mean(all_best_weighted_thresholds)
+    avg_f1_curve = np.mean(all_f1_scores_per_threshold, axis=0)
+    best_idx_curve = np.argmax(avg_f1_curve)
+    best_thresh_curve = thresholds[best_idx_curve]
+    best_f1_curve = avg_f1_curve[best_idx_curve]
+    avg_weighted_f1_curve = np.mean(all_weighted_f1_scores_per_threshold, axis=0)
+    best_weighted_idx_curve = np.argmax(avg_weighted_f1_curve)
+    best_weighted_thresh_curve = thresholds[best_weighted_idx_curve]
+    best_weighted_f1_curve = avg_weighted_f1_curve[best_weighted_idx_curve]
+
+    print(f"\nBest F1 from averaged curve: {best_f1_curve:.3f} at threshold {best_thresh_curve:.2f}")
+    print(f"Best Weighted F1 from averaged curve: {best_weighted_f1_curve:.3f} at threshold {best_weighted_thresh_curve:.2f}")
+    #print(f"\nAverage best F1 across folds: {avg_f1:.3f} (mean threshold: {best_thresh:.2f})")
+    #print(f"Average best Weighted F1 across folds: {avg_weighted_f1:.3f} (mean threshold: {best_weighted_thresh:.2f})")
+
+    return {
+        'best_thresh_curve': best_thresh_curve,
+        'best_weighted_thresh_curve': best_weighted_thresh_curve,
+        'peak_f1_of_avg': best_f1_curve,
+        'peak_wf1_of_avg': best_weighted_f1_curve
+        #'avg_best_f1': avg_f1,
+        #'avg_best_weighted_f1': avg_weighted_f1,
+        #'avg_threshold_f1': best_thresh,
+        #'avg_threshold_weighted': best_weighted_thresh
+    }
