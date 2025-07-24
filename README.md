@@ -127,6 +127,6 @@ LDA and regression models output the same ordering of the teams in terms of prob
 
 ## 7. Conclusions and Future Models
 
-In broad strokes, these models matche our intuition as football fans: a large point differential indicates a dominant team, which is an indicator of future success. Similarly, offensive strength has some level of continuity between seasons, likely due to the presence or lack of steady quarterback play.
+In broad strokes, these models match our intuition as football fans: a large point differential indicates a dominant team, which is an indicator of future success. Similarly, offensive strength has some level of continuity between seasons, likely due to the presence or lack of steady quarterback play.
 
 One glaring omission from this work is any *nonlinearity*. This was intentional; it is crucial to test different models and different featues thoroughly, and this is only a small first step. We also neglected to include any roster continuity measurement, something which will certainly impact sustained success. 
