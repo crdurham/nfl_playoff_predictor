@@ -27,13 +27,13 @@ def test_vif(X):
     vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
     return vif_data
 
-
-
 def fit_weighted_log(X, y):
     '''Fit a weighted logistic regression model with feature data X and label data y. Returns the results of
     fitting the model.'''
-
-    X_sm = sm.add_constant(X)
+    if not isinstance(y, pd.Series):
+        y = pd.Series(y, index=X.index)
+    else:
+        y = y.reindex(X.index)
 
     class_counts = Counter(y)
     n_total = len(y)
@@ -45,7 +45,7 @@ def fit_weighted_log(X, y):
 
     model = sm.GLM(
         y,
-        X,
+        sm.add_constant(X),
         family=sm.families.Binomial(),
         freq_weights=sample_weights
     )
@@ -156,21 +156,53 @@ def lda_cv(X, y, folds=10, repeats = 1, scoring='weighted_f1', verbose=True):
         print(f"Average {scoring} across folds:\n {avg_score}")
     return scores, avg_score
 
-def lda_eval(X_train, X_test, y_train, y_test):
+def lda_eval_threshold(X_train, X_test, y_train, y_test, threshold=0.5):
     scaler = StandardScaler()
-    X_2_train_scaled = scaler.fit_transform(X_train)
-    X_2_test_scaled = scaler.transform(X_test)
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
-    # train
     lda = LDA()
-    lda.fit(X_2_train_scaled, y_train)
+    lda.fit(X_train_scaled, y_train)
 
-    # predict
-    y_pred = lda.predict(X_2_test_scaled)
+    y_prob = lda.predict_proba(X_test_scaled)[:, 1]
+    y_pred = (y_prob >= threshold).astype(int)
 
-    # evaluate
-    print(classification_report(y_test, y_pred))
+    print(f"Evaluation at threshold = {threshold:.2f}")
+    print(classification_report(y_test, y_pred, digits=3))
     print(confusion_matrix(y_test, y_pred))
+
+def lda_predict_probs(X_train, y_train, X_predict, features=['PD', 'OSRS'], threshold = 0.5):
+    scaler = StandardScaler()
+    lda = LDA()
+    X_train_scaled = scaler.fit_transform(X_train[features])
+    X_pred_scaled = scaler.transform(X_predict[features])
+    lda.fit(X_train_scaled, y_train)
+    y_probs = lda.predict_proba(X_pred_scaled)[:,1]
+    y_pred = (y_probs >= threshold).astype(int)
+
+    results = X_predict[['Tm']].copy()
+    results['Playoff Prob'] = y_probs
+    results['Make/Miss Playoffs'] = y_pred
+
+    results = results.sort_values('Playoff Prob', ascending=False).reset_index(drop=True)
+
+    return results
+
+def glm_predict_probs(X_train, y_train, X_predict, features=['PD', 'OSRS'], threshold = 0.5):
+    glm = fit_weighted_log(X_train[features], y_train)
+
+    X_pred_with_const = sm.add_constant(X_predict[features])
+    y_probs = glm.predict(X_pred_with_const)
+    y_pred = (y_probs >= threshold).astype(int)
+
+    results = X_predict[['Tm']].copy()
+    results['Playoff Prob'] = y_probs
+    results['Make/Miss Playoffs'] = y_pred
+
+    results = results.sort_values('Playoff Prob', ascending=False).reset_index(drop=True)
+
+    return results
+
 
 def rf_cv(X, y, folds=10, repeats = 1, n_estimators = 100, max_depth=5, min_samples_leaf = 2, scoring='weighted_f1', verbose=True):
     rskf = RepeatedStratifiedKFold(n_splits=folds, n_repeats=repeats,random_state=42)
@@ -386,7 +418,6 @@ def CV_threshold_tuning_statsmodels(X, y, folds=5, thresholds=np.arange(0.05, 0.
         X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
         y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
 
-        # Class weights
         class_counts = Counter(y_train)
         n_total = len(y_train)
         weights = y_train.map({
@@ -394,16 +425,16 @@ def CV_threshold_tuning_statsmodels(X, y, folds=5, thresholds=np.arange(0.05, 0.
             1: n_total / (2 * class_counts[1])
         })
 
-        # Fit model
+        # Train model
         X_train_sm = sm.add_constant(X_train)
         model = sm.GLM(y_train, X_train_sm, family=sm.families.Binomial(), freq_weights=weights)
         result = model.fit()
 
-        # Predict on validation set
+        # Predict on val set
         X_val_sm = sm.add_constant(X_val)
         y_prob = result.predict(X_val_sm)
 
-        # Threshold tuning
+        # Tune threshold
         f1s = []
         weighted_f1s = []
 
@@ -465,3 +496,90 @@ def CV_threshold_tuning_statsmodels(X, y, folds=5, thresholds=np.arange(0.05, 0.
         #'avg_threshold_f1': best_thresh,
         #'avg_threshold_weighted': best_weighted_thresh
     }
+
+
+def CV_threshold_tuning_lda(X, y, folds=5, thresholds=np.arange(0.05, 0.95, 0.01), plot=False):
+    '''Performs k-fold cross validation manually using LDA() in analogous fashion to CV_threshold_tuning_statsmodels.'''
+    
+    skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=42)
+
+    all_f1_scores = []
+    all_weighted_f1_scores = []
+    all_best_thresholds = []
+    all_best_weighted_thresholds = []
+
+    all_f1_scores_per_threshold = []
+    all_weighted_f1_scores_per_threshold = []
+
+    for fold, (train_idx, val_idx) in enumerate(skf.split(X, y), 1):
+        X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
+        y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
+
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_val_scaled = scaler.transform(X_val)
+
+        lda = LDA()
+        lda.fit(X_train_scaled, y_train)
+
+        y_prob = lda.predict_proba(X_val_scaled)[:,1]
+
+        # Tune threshold
+        f1s = []
+        weighted_f1s = []
+
+        for t in thresholds:
+            y_pred = (y_prob >= t).astype(int)
+            f1s.append(f1_score(y_val, y_pred, zero_division=0))
+            weighted_f1s.append(f1_score(y_val, y_pred, average='weighted', zero_division=0))
+
+        best_idx = np.argmax(f1s)
+        best_weighted_idx = np.argmax(weighted_f1s)
+
+        all_f1_scores.append(f1s[best_idx])
+        all_weighted_f1_scores.append(weighted_f1s[best_weighted_idx])
+        all_best_thresholds.append(thresholds[best_idx])
+        all_best_weighted_thresholds.append(thresholds[best_weighted_idx])
+        all_f1_scores_per_threshold.append(f1s)
+        all_weighted_f1_scores_per_threshold.append(weighted_f1s)
+
+        print(f"Fold {fold}: Best F1 = {f1s[best_idx]:.3f} at threshold {thresholds[best_idx]:.2f}, "
+              f"Best Weighted F1 = {weighted_f1s[best_weighted_idx]:.3f} at threshold {thresholds[best_weighted_idx]:.2f}")
+
+    import matplotlib.pyplot as plt
+
+    if plot:
+        fig, ax = plt.subplots()
+        ax.plot(thresholds, np.mean(all_f1_scores_per_threshold, axis=0), label='F1')
+        ax.plot(thresholds, np.mean(all_weighted_f1_scores_per_threshold, axis=0), label='Weighted F1')
+        ax.set_xlabel("Threshold")
+        ax.set_ylabel("Score")
+        ax.set_title("Average CV Metrics vs Threshold")
+        ax.legend()
+        ax.grid(True)
+        fig.tight_layout()
+        plt.show()
+
+    avg_f1_curve = np.mean(all_f1_scores_per_threshold, axis=0)
+    best_idx_curve = np.argmax(avg_f1_curve)
+    best_thresh_curve = thresholds[best_idx_curve]
+    best_f1_curve = avg_f1_curve[best_idx_curve]
+    avg_weighted_f1_curve = np.mean(all_weighted_f1_scores_per_threshold, axis=0)
+    best_weighted_idx_curve = np.argmax(avg_weighted_f1_curve)
+    best_weighted_thresh_curve = thresholds[best_weighted_idx_curve]
+    best_weighted_f1_curve = avg_weighted_f1_curve[best_weighted_idx_curve]
+
+    print(f"\nBest F1 from averaged curve: {best_f1_curve:.3f} at threshold {best_thresh_curve:.2f}")
+    print(f"Best Weighted F1 from averaged curve: {best_weighted_f1_curve:.3f} at threshold {best_weighted_thresh_curve:.2f}")
+
+    results = {
+        'best_thresh_curve': best_thresh_curve,
+        'best_weighted_thresh_curve': best_weighted_thresh_curve,
+        'peak_f1_of_avg': best_f1_curve,
+        'peak_wf1_of_avg': best_weighted_f1_curve
+    }
+
+    if plot:
+        return results, fig
+    else:
+        return results

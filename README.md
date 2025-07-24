@@ -46,7 +46,7 @@ OSRS           0.0626      0.030      2.055      0.040       0.003       0.122
 ==============================================================================
 ```
 
-Through cross-validation, it is determined that the F1 score achieves a maximum value of $0.6$ at a classification threshold of $p=0.41$ while the weighted F1 score achieves a maximum value of $0.65$ at a classification threshold of $p=0.55$. This makes sense, since weighted F1 places greater emphasis on the majority class, i.e. teams which miss the playoffs. The model generalizes to unseen test data as there is minimal change in performance.
+Through cross-validation, it is determined that the F1 score achieves a maximum value of $0.6$ at a classification threshold of $p=0.41$ while the weighted F1 score achieves a maximum value of $0.65$ at a classification threshold of $p=0.55$. This makes sense, since weighted F1 places greater emphasis on the majority class, i.e. teams which miss the playoffs. We elect to use the higher threshold $p=0.55$ for balance. The model generalizes to unseen test data as there is minimal change in performance.
 
 ```text
 ===============================================================
@@ -66,7 +66,7 @@ Through cross-validation, it is determined that the F1 score achieves a maximum 
 
 ## 6. Linear Discriminant Analysis
 
-We train an LDA model to compare with the linear regression model discussed above. Cross-validation reveals as before that model performance with a more expansive feature set (SoS, Avg Experience, DSRS, Num Rookies in addition to PD and OSRS) is roughly the same as with only PD and OSRS. The sparse feature set yielded an average weighted F1 score of $0.66$ in cross-validation, while on the test data
+We train an LDA model to compare with the linear regression model discussed above. We see as before that model performance with a more expansive feature set (SoS, Avg Experience, DSRS, Num Rookies in addition to PD and OSRS) is roughly the same as with only PD and OSRS. The sparse feature set yields an average weighted F1 score of $0.66$ in cross-validation, while on the test data
 
 ```text
 ===============================================================
@@ -84,6 +84,46 @@ weighted avg       0.68      0.68      0.67       212
 ===============================================================
 ```
 which indicates a similar level of generalizability and performance to the logistic regression model. It should be noted that the classification threshold was not tuned here.
+
+## 7. 2025 Predictions 
+
+LDA and regression models output the same ordering of the teams in terms of probability to make the playoffs. The regression output it shown below.
+
+```text
+     Tm  Playoff Prob  Make/Miss Playoffs
+0   DET      0.827910                   1
+1   BAL      0.754216                   1
+2   BUF      0.752531                   1
+3   PHI      0.712961                   1
+4    TB      0.695587                   1
+5    GB      0.690405                   1
+6   WAS      0.659058                   1
+7   DEN      0.653443                   1
+8   MIN      0.644396                   1
+9   LAC      0.622421                   1
+10  CIN      0.593345                   1
+11   KC      0.561978                   1
+12  ARI      0.525125                   0
+13  PIT      0.523437                   0
+14  SEA      0.494812                   0
+15  HOU      0.472305                   0
+16  LAR      0.458332                   0
+17  ATL      0.446107                   0
+18   SF      0.439805                   0
+19  MIA      0.425909                   0
+20  IND      0.420493                   0
+21   NO      0.374640                   0
+22  NYJ      0.373840                   0
+23  CHI      0.361981                   0
+24  DAL      0.317985                   0
+25  JAX      0.305702                   0
+26   LV      0.297814                   0
+27   NE      0.273421                   0
+28  TEN      0.265710                   0
+29  NYG      0.248292                   0
+30  CAR      0.241248                   0
+31  CLE      0.219558                   0
+```
 
 ## 7. Conclusions and Future Models
 
