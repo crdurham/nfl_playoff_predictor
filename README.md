@@ -15,10 +15,10 @@ For information relating to the roster constitution of each team, yearly rosters
 Simply put, our naive hope is that one or more variables will separate our data into two classes according to whether or not the team made the playoffs in the subsequent season. The plots below give a glimpse: the classes overlap substantially in 1 and 2 dimensions, as expected.
 
 <p>
-  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/histograms.png" width="600" height="300">
+  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/histograms.png" width="600" height="400">
 </p>
 <p>
-  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/2dscatters.png" width="600" height="300">
+  <img src="https://github.com/crdurham/nfl_playoff_predictor/blob/main/images/2dscatters.png" width="800" height="800">
 
 </p>
 
